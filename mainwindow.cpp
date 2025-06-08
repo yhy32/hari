@@ -1,47 +1,43 @@
-#include "mainwindow.h"
-#include "ui_mainwindow.h"
-#include "iostream"
-#include "fstream"
-#include "cstdio"
-#include "QString"
-#include "string"
-#include "vector"
-#include "QMessageBox"
-
-using namespace std;
-
 /**
- * @brief MainWindow 构造函数
- * @param parent 父窗口指针，默认 nullptr
- * 负责初始化 UI 界面
+ * @brief 处理编号查询按钮点击事件
+ * 
+ * 根据用户输入的编号，展示对应编号的搜索结果文本行。
+ * 若编号非法，弹出提示框警告。
  */
-MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
-    , ui(new Ui::MainWindow)
+void MainWindow::on_pushButton_2_clicked()
 {
-    ui->setupUi(this);
+    QString text = ui->lineEdit_2->text();//获取编号文本
+    int num = 0;
+    try {
+        num = stoi(text.toStdString());
+    }  catch (...) {
+        QMessageBox::warning(this,tr("警告信息"),tr("请输入正确的编号"));
+        return;
+    }
+    num--;
+    if(num >= int(searchInfo.size()) || num < 0){
+        QMessageBox::warning(this,tr("警告信息"),tr("输入的编号过大或无效"));
+        return;
+    }
+    ui->textBrowser_2->clear();
+    ui->textBrowser_2->append(QString::fromStdString(searchInfo[num].getLine()));
 }
 
 /**
- * @brief MainWindow 析构函数
- * 负责释放 UI 资源
+ * @brief 处理textBrowser中的超链接点击事件
+ * 
+ * 用户点击显示结果中的超链接编号时触发。
+ * 展示对应编号的搜索结果文本行。
+ * @param arg1 被点击的超链接 URL
  */
-MainWindow::~MainWindow()
+void MainWindow::on_textBrowser_anchorClicked(const QUrl &arg1)
 {
-    delete ui;
+    ui->textBrowser->setOpenExternalLinks(false);
+    ui->textBrowser->setOpenLinks(false);
+    QString clickedText = arg1.toString();
+    int num = stoi(clickedText.toStdString()) - 1;
+    if(num >= 0 && num < int(searchInfo.size())){
+        ui->textBrowser_2->clear();
+        ui->textBrowser_2->append(QString::fromStdString(searchInfo[num].getLine()));
+    }
 }
-
-// 存储查找结果的全局变量
-vector<SearchInfo> searchInfo;
-
-// 需要搜索的文件名数组
-const char *books[8] = {
-    "J.K. Rowling - Quidditch Through the Ages.txt",
-    "J.K. Rowling - HP 6 - Harry Potter and the Half-Blood Prince.txt",
-    "J.K. Rowling - HP 4 - Harry Potter and the Goblet of Fire.txt",
-    "J.K. Rowling - HP 3 - Harry Potter and the Prisoner of Azkaban.txt",
-    "J.K. Rowling - HP 0 - Harry Potter Prequel.txt",
-    "HP7--Harry_Potter_and_the_Deathly_Hallows_Book_7_.txt",
-    "HP2--Harry_Potter_and_the_Chamber_of_Secrets_Book_2_.txt",
-    "J.K. Rowling - The Tales of Beedle the Bard.txt"
-};
